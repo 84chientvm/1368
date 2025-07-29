@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Bảng điểm Bida Pool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #222;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 20px;
+    }
+
+    .player {
+      border: 3px solid white;
+      border-radius: 12px;
+      padding: 20px;
+      min-width: 220px;
+      text-align: center;
+    }
+
+    .player.player1 {
+      background-color: #003366;
+      border-color: #00ffff;
+    }
+
+    .player.player2 {
+      background-color: #660000;
+      border-color: #ff3333;
+    }
+
+    .player h2 {
+      margin: 5px 0;
+    }
+
+    .score {
+      font-size: 48px;
+      margin: 10px 0;
+    }
+
+    button {
+      margin: 2px;
+      padding: 6px 12px;
+      font-size: 16px;
+      background: white;
+      color: black;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #ddd;
+    }
+
+    input[type="text"], input[type="number"] {
+      font-size: 16px;
+      padding: 4px;
+      margin-bottom: 10px;
+      width: 100%;
+      border-radius: 6px;
+      border: none;
+      text-align: center;
+    }
+
+    .controls {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .winner {
+      font-size: 28px;
+      color: #00ff88;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bảng Điểm Bida Pool</h1>
+
+  <div>
+    Race to: <input type="number" id="raceTo" value="5" min="1" />
+  </div>
+
+  <div class="scoreboard">
+    <div class="player player1" id="player1">
+      <input type="text" id="name1" value="Người chơi 1" oninput="updateName(1)" />
+      <h2 id="nameDisplay1">Người chơi 1</h2>
+      <div class="score" id="score1">0</div>
+      <button id="add1" onclick="addPoint(1)">+1</button>
+      <button onclick="subtractPoint(1)">-1</button>
+    </div>
+
+    <div class="player player2" id="player2">
+      <input type="text" id="name2" value="Người chơi 2" oninput="updateName(2)" />
+      <h2 id="nameDisplay2">Người chơi 2</h2>
+      <div class="score" id="score2">0</div>
+      <button id="add2" onclick="addPoint(2)">+1</button>
+      <button onclick="subtractPoint(2)">-1</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button onclick="resetScores()">Reset điểm</button>
+    <div class="winner" id="winner"></div>
+  </div>
+
+  <script>
+    let scores = [0, 0];
+    let gameOver = false;
+
+    function updateScoreDisplay() {
+      document.getElementById('score1').textContent = scores[0];
+      document.getElementById('score2').textContent = scores[1];
+    }
+
+    function addPoint(player) {
+      if (gameOver) return;
+
+      scores[player - 1]++;
+      updateScoreDisplay();
+      checkWinner();
+    }
+
+    function subtractPoint(player) {
+      if (scores[player - 1] > 0 && !gameOver) {
+        scores[player - 1]--;
+        updateScoreDisplay();
+      }
+    }
+
+    function updateName(player) {
+      const name = document.getElementById(`name${player}`).value;
+      document.getElementById(`nameDisplay${player}`).textContent = name;
+    }
+
+    function checkWinner() {
+      const raceTo = parseInt(document.getElementById("raceTo").value || 0);
+      if (scores[0] >= raceTo) {
+        declareWinner(1);
+      } else if (scores[1] >= raceTo) {
+        declareWinner(2);
+      }
+    }
+
+    function declareWinner(player) {
+      gameOver = true;
+      const winnerName = document.getElementById(`name${player}`).value;
+      document.getElementById("winner").textContent = `🎉 ${winnerName} thắng cuộc!`;
+
+      document.getElementById("add1").disabled = true;
+      document.getElementById("add2").disabled = true;
+    }
+
+    function resetScores() {
+      scores = [0, 0];
+      gameOver = false;
+      updateScoreDisplay();
+      document.getElementById("winner").textContent = "";
+      document.getElementById("add1").disabled = false;
+      document.getElementById("add2").disabled = false;
+    }
+
+    // Khởi tạo tên hiển thị ban đầu
+    updateName(1);
+    updateName(2);
+  </script>
+</body>
+</html>
