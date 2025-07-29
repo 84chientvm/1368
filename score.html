@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Bảng điểm</title>
+  <style>
+    body {
+      background: transparent;
+      font-family: 'Arial Black', sans-serif;
+      font-size: 48px;
+      color: white;
+      text-align: center;
+    }
+    .scoreboard {
+      display: flex;
+      justify-content: space-around;
+      padding: 20px;
+    }
+    .player {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 20px 40px;
+      border-radius: 15px;
+      min-width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="scoreboard">
+    <div class="player" id="p1">0</div>
+    <div class="player" id="p2">0</div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="firebase.js"></script>
+  <script>
+    window.bidaRef.on("value", snapshot => {
+      const data = snapshot.val();
+      document.getElementById("p1").innerText = data?.player1 || 0;
+      document.getElementById("p2").innerText = data?.player2 || 0;
+    });
+  </script>
+</body>
+</html>
