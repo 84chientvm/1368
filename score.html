@@ -84,12 +84,12 @@
     </div>
 
     <div class="player-box">
-      <div class="name" id="name2">Player 2</div>
       <div class="score" id="p2">0</div>
+      <div class="name" id="name2">Player 2</div>
     </div>
   </div>
 
-  <div class="race" id="race">Race 15</div>
+  <div class="race" id="race">Race To 15</div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -114,7 +114,7 @@
       name2El.innerText = data?.player2_name || "Player 2";
       document.getElementById("p1").innerText = data?.player1 || 0;
       document.getElementById("p2").innerText = data?.player2 || 0;
-      document.getElementById("race").innerText = `Race ${data?.race || 15}`;
+      document.getElementById("race").innerText = `Race To ${data?.race || 15}`;
 
       autoResizeFont(name1El);
       autoResizeFont(name2El);
