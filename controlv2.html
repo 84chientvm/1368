@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Điều khiển bảng điểm</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input,
+    select,
+    button {
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .player {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+
+    .score {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .btn-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .btn-row button {
+      width: 48%;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-row button:hover {
+      background-color: #0056b3;
+    }
+
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .actions button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .actions button:hover {
+      background-color: #1e7e34;
+    }
+
+    .add-table {
+      margin-top: 10px;
+      background: #ffc107;
+      border: none;
+      color: #333;
+    }
+
+    .add-table:hover {
+      background: #e0a800;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Điều khiển bảng điểm</h2>
+
+    <label>Chọn bàn:</label>
+    <select id="tableSelector" onchange="switchTable()"></select>
+    <button class="add-table" onclick="addNewTable()">➕ Thêm bàn mới</button>
+
+    <label>Tên Người chơi 1:</label>
+    <input type="text" id="name1" placeholder="Player 1" />
+
+    <label>Tên Người chơi 2:</label>
+    <input type="text" id="name2" placeholder="Player 2" />
+
+    <label>Race (số điểm đích):</label>
+    <input type="number" id="race" placeholder="Ví dụ: 50" />
+
+    <div class="player">
+      <h3>Người chơi 1</h3>
+      <div class="btn-row">
+        <button onclick="changeScore('player1', 1)">+1</button>
+        <button onclick="changeScore('player1', -1)">-1</button>
+      </div>
+      <div class="score" id="score1">0</div>
+    </div>
+
+    <div class="player">
+      <h3>Người chơi 2</h3>
+      <div class="btn-row">
+        <button onclick="changeScore('player2', 1)">+1</button>
+        <button onclick="changeScore('player2', -1)">-1</button>
+      </div>
+      <div class="score" id="score2">0</div>
+    </div>
+
+    <div class="actions">
+      <button onclick="saveNamesAndRace()">💾 Lưu tên & Race</button>
+      <button onclick="resetScore()">🔄 Reset điểm</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="firebase.js"></script>
+
+  <script>
+    let currentTable = '';
+    let currentRef = null;
+    let allTables = [];
+
+    const tableSelector = document.getElementById('tableSelector');
+
+    function loadTables() {
+      const bidaRef = window.firebase.database().ref('bida');
+      bidaRef.once("value").then(snapshot => {
+        const data = snapshot.val() || {};
+
+        // Lọc các key bắt đầu bằng "table"
+        allTables = Object.keys(data).filter(key => key.startsWith("table"));
+
+        // Nếu không có bàn nào, tạo bàn mặc định
+        if (allTables.length === 0) {
+          allTables = ['table1'];
+          window.firebase.database().ref('bida/table1').set({
+            player1: 0,
+            player2: 0,
+            player1_name: 'Player 1',
+            player2_name: 'Player 2',
+            race: 50
+          });
+        }
+
+        renderTableOptions();
+        switchTable(allTables[0]);
+      });
+    }
+
+
+    function renderTableOptions() {
+      tableSelector.innerHTML = '';
+      allTables.forEach(table => {
+        console.log(table);
+
+        const option = document.createElement('option');
+        option.value = table;
+        option.textContent = table;
+        tableSelector.appendChild(option);
+      });
+    }
+
+    function switchTable(tableId = tableSelector.value) {
+      currentTable = tableId;
+      currentRef = window.firebase.database().ref('bida/' + currentTable);
+
+      if (window.bidaListener) {
+        window.bidaListener.off();
+      }
+
+      window.bidaListener = currentRef;
+      currentRef.on("value", snapshot => {
+        const data = snapshot.val() || {};
+        document.getElementById("score1").innerText = data.player1 || 0;
+        document.getElementById("score2").innerText = data.player2 || 0;
+        document.getElementById("name1").value = data.player1_name || "";
+        document.getElementById("name2").value = data.player2_name || "";
+        document.getElementById("race").value = data.race || "";
+      });
+
+      tableSelector.value = currentTable;
+    }
+
+    function addNewTable() {
+      const newTableId = `table${allTables.length + 1}`;
+      window.firebase.database().ref('bida/' + newTableId).set({
+        player1: 0,
+        player2: 0,
+        player1_name: "Player 1",
+        player2_name: "Player 2",
+        race: 50
+      }).then(() => {
+        allTables.push(newTableId);
+        renderTableOptions();
+        switchTable(newTableId);
+      });
+    }
+
+    function changeScore(player, amount) {
+      const ref = window.firebase.database().ref('bida/' + currentTable + '/' + player);
+      ref.get().then(snapshot => {
+        const current = snapshot.val() || 0;
+        ref.set(Math.max(current + amount, 0));
+      });
+    }
+
+    function saveNamesAndRace() {
+      currentRef.update({
+        player1_name: document.getElementById("name1").value || "Player 1",
+        player2_name: document.getElementById("name2").value || "Player 2",
+        race: Number(document.getElementById("race").value) || 0
+      });
+    }
+
+    function resetScore() {
+      currentRef.update({
+        player1: 0,
+        player2: 0
+      });
+    }
+
+    window.onload = loadTables;
+  </script>
+</body>
+
+</html>
